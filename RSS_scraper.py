@@ -13,6 +13,7 @@ items = soup.findAll('item')
 
 item = items[0]
 
+
 handelser_hela_landet_fler = []
 
 for item in items:
