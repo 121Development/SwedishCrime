@@ -1,0 +1,9 @@
+Program will be modular
+1st module will be a RSS scraper
+Adapt that to specific RSS feed
+2nd module store do DB
+3rd publish to website
+Auto detect regions/cities
+Website filter options
+Subscribe for updates
+In your region
