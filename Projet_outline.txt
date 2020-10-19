@@ -12,6 +12,7 @@ Program will be modular
         Time-module, search each minute or every two minutes
     read DB, if new, store in DB
     Geoparse location names and map to coordinates or places on google map or geoparse all names
+    Add randomness to coordinates as to not stack them on top of each other, 2 sets, one for main cities and one for locations found in text summary, smaller randomization
 
 2nd module store do DB
     Set keywords to store
