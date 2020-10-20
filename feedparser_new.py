@@ -198,6 +198,8 @@ for entry in values_only: #lista med listor
             entry[n] = "NULL"
         entry[-1] = "NULL" #temporarily remove the time struct from the end for now
 
+locations = []
+
 #loop through enties and turn them into strings, look for "uppdaterad" and then update table instead of insert
 for entry in values_only:
     if entry[1][0] == "U":
