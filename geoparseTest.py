@@ -16,16 +16,21 @@ from shapely.geometry import Point, Polygon
 import descartes
 
 
-cities = ['Jönkööping stad har en anrik tradition', 'Stockholm är Sveriges största stad', 
+cities = ['Lidingö stad har en anrik tradition', 'Stockholm är Sveriges största stad', 
 'I Göteborg stad är mest akvedukter och tunnlar', 
 'I Borås kommun regnar det mycket', 'I Malmö är det fullt krig']
 
 #geolocator = Nominatim(timeout=2)
 
-nominatim_service = Nominatim(user_agent='SC') 
-#and then call the service on whatever your input data is 
-#geolocator = RateLimiter(nominatim_service.geocode, min_delay_seconds=1, timeout=2) collisions['geocodes'] = collisions['location_string'].apply(geolocator) 
+
+#NEW
+nominatim_service = Nominatim(user_agent='SC', timeout=3)
 geolocator = nominatim_service.geocode
+
+#nominatim_service = Nominatim(user_agent='SC') 
+#and then call the service on whatever your input data is 
+#geolocator = rateLimiter(nominatim_service.geocode, min_delay_seconds=1, timeout=3) #collisions['geocodes'] = collisions['location_string'].apply(geolocator) 
+#geolocator = nominatim_service.geocode
 
 cities_clean = []
 for city in cities:
