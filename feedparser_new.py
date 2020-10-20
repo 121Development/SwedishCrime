@@ -1,10 +1,8 @@
-# https://www.tutorialspoint.com/python_text_processing/python_reading_rss_feed.htm
 import feedparser
 import datetime
 #import pandas as pd
 from pprint import pprint
 import re
-import databaseConn
 import mysql.connector
 from mysql.connector import Error
 
@@ -13,7 +11,6 @@ host = "localhost"
 user = "root"
 password = ""
 database = "swedishCrime"
-
 
 
 # SET BELOW ROUNDS VARIABLE TO 2 ROUNDS MORE THAN NUMBER OF LEVELS OF YOUR DB
@@ -43,11 +40,25 @@ def read_query(conn, query):
         print(f"Error: '{err}'")
 
 # Function to execute passed query
+commitedSum = 0
 def execute_query(conn, query):
+    global commitedSum
     try:
         cursor.execute(query)
         conn.commit()
+        commitedSum += 1
         print("Commited data")
+    except Error as err:
+        print(f"Error: '{err}'")
+
+updatedSum = 0
+def update_query(conn, query):
+    global updatedSum
+    try:
+        cursor.execute(query)
+        conn.commit()
+        updatedSum += 1
+        print("Updated data")
     except Error as err:
         print(f"Error: '{err}'")
 
@@ -156,8 +167,9 @@ def split_title(title_for_current_entry, number):
 
 #intialize list to store events
 events = []
+entries = []
 entries = feedparser['entries']
-
+#pprint(entries)
 for entry in entries: 
     events.append({
         'link': entry['link'],
@@ -179,29 +191,42 @@ for event in events:
     #print(event)
     values_only.append(list(event.values()))
 
-
 #Loop through values in values_only and add '' around all and #replace '' with NULL in a loop
 for entry in values_only: #lista med listor
     for n, i in enumerate(entry): #lista med title, link etc.
         if len(entry[n]) == 0:
-            entry[n] = ""
-        entry[-1] = "" #temporarily remove the time struct from the end for now
-        # if entry[n] != "NULL":
-        #     entry[n] = f"'{entry[n]}'"
-tmp = ""
+            entry[n] = "NULL"
+        entry[-1] = "NULL" #temporarily remove the time struct from the end for now
 
-table_names = get_all_table_names()
-delete_table_data(6)
-
+#loop through enties and turn them into strings, look for "uppdaterad" and then update table instead of insert
 for entry in values_only:
-    tmp = str(entry).strip('[]')
-    #print(type(tmp))
-    #print(tmp)
-    tmp = re.sub('"NULL"', '', tmp)
-    pop_events = "INSERT INTO events VALUES (" + tmp + ");"
-#    print(pop_events)
-    execute_query(conn, pop_events)
-#print(pop_events)
+    if entry[1][0] == "U":
+        #print("Found U")
+        #print(entry[0])
+        #linkPKforEntry = ""    
+        linkPKforEntry = "".join(entry[0])
+        
+        # if updated is poulated, skip below
+        #isUpdated = ""
+        isUpdated = "SELECT updated FROM events WHERE link = '" + linkPKforEntry + "';"
+        tmpResponse = read_query(conn, isUpdated)
+        tmpResponse = tmpResponse[0][0]
+        if len(tmpResponse) < 7:
+            print("hittat")
+            updateTmp = ""
+            summaryTmp = ""
+            updateTmp = "".join(entry[1])
+            summaryTmp = "".join(entry[-4])
+            update_event = "UPDATE events SET updated = '" + updateTmp + "' WHERE link = '" + linkPKforEntry + "';"
+            update_query(conn, update_event)
+            update_event = "UPDATE events SET summary = '" + summaryTmp + "' WHERE link = '" + linkPKforEntry + "';"
+            update_query(conn, update_event)
+    else:
+        tmp = str(entry).strip('[]')
+        tmp = re.sub('\'NULL\'', 'NULL', tmp)
+        pop_events = "INSERT INTO events VALUES (" + tmp + ");"
+        execute_query(conn, pop_events)
 
-
-
+pprint(len(values_only))
+print("Commited " + str(commitedSum) + "events")
+print("Updated " + str(updatedSum) + "events")
