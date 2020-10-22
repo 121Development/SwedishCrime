@@ -4,32 +4,25 @@
 import mysql.connector
 from mysql.connector import Error
 
-# YOUR DB INFO #
-host = "35.228.29.131"
-user = "sc"
+# # YOUR DB INFO #
+# host = "35.228.29.131"
+# user = "sc"
+# password = "!"
+# database = "swedishCrime"
+#YOUR DB INFO #
+host = "localhost"
+user = "root"
 password = ""
 database = "swedishCrime"
-# # YOUR DB INFO #
-# host = "localhost"
-# user = "root"
-# password = ""
-# database = "swedishCrime"
 
-
-# SET BELOW ROUNDS VARIABLE TO 2 ROUNDS MORE THAN NUMBER OF LEVELS OF YOUR DB
-# PARENT TABLE, CHILD, CHILD OF CHILD ETC.
-rounds = 6
-
-# def test():
-#     return("Hej")
 
 #Establish the connection and set cursor
-
-conn = mysql.connector.connect(user=user, password=password, host=host, database=database)
-cursor = conn.cursor()
-print(f"\nSuccessfully connected to database {database}\n")
-# except Error as err:
-#     print(f"Error: '{err}'")
+try:
+    conn = mysql.connector.connect(user=user, password=password, host=host, database=database)
+    cursor = conn.cursor()
+    print(f"\nSuccessfully connected to database {database}\n")
+except Error as err:
+    print(f"Error: '{err}'")
 
 # Function to read passed query
 def read_query(query):
@@ -88,5 +81,8 @@ def get_all_table_names():
     table_names = [item for t in result for item in t] 
     return(table_names)
 
+def closeConnection():
+    cursor.close()
+    conn.close()
 
 #table_names = get_all_table_names()

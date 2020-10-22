@@ -3,12 +3,7 @@ import datetime
 from pprint import pprint
 import re
 import DBConnector as db
-import geoparser as gp 
-
-#create new DB
-#Drop UQ keys
-#add categories to it
-#add cities to it
+import geoparser as gp
 
 def split_title(title_for_current_entry, number):
     #Below takes the title and strips any : with a space after to separate an updated title from a normal title. Then splits all on , 
@@ -106,14 +101,14 @@ def categorizeEntries():
 
 def stripValues():
     #Strip key value and keep value only from dict and store in list.
-    global valuesOnly
-    valuesOnly = []
+    global values_only
+    values_only = []
     for event in events: 
-        valuesOnly.append(list(event.values()))
+        values_only.append(list(event.values()))
 
 def addNull():
-    #Loop through values in valuesOnly and add replace '' with NULL in a loop
-    for entry in valuesOnly: #lista med listor
+    #Loop through values in values_only and add replace '' with NULL in a loop
+    for entry in values_only: #lista med listor
         for n, i in enumerate(entry): #lista med title, link etc.
             if len(entry[n]) == 0:
                 entry[n] = "NULL"
@@ -124,107 +119,96 @@ def addCityToList():
     global listOfCities
     global listOfCitiesSet
     listOfCities, listOfCitiesSet = [], []
-    for entry in valuesOnly:
+    for entry in values_only:
         #print(entry[5])
         listOfCities.append(entry[5])
         listOfCitiesSet = set(listOfCities)
 
-def addCategoryToList():
-    global listOfCategories
-    global listOfCategoriesSet
-    listOfCategories, listOfCategoriesSet = [], []
-    tmpQuery = '''SELECT category FROM events;'''
-    tmp = db.read_query(tmpQuery)
-    for category in tmp:
-        if category not in listOfCategories:
-            listOfCategories.append(str(category).strip("()',"))
-    listOfCategoriesSet = set(listOfCategories)        
-    #print(listOfCategoriesSet)
+# def checkIfLinkExists2(lank):
+#     global listOf200links
+#     tmpQuery = '''SELECT link FROM events limit 200;'''
+#     listOf200links = db.read_query(tmpQuery)
+#     tmp = []
+#     for link in listOf200links:
+#         tmp.append(str(link).strip("()',"))
+#     if lank in tmp:
+#         return(True)
+#     return(False)
 
-def latestLinks():
-    global latest200links
-    latest200links = []
-    tmpQuery = '''SELECT link FROM events ORDER BY event_time DESC limit 200;'''
+def checkIfLinkExists():
+    global listOf200links
+    tmpQuery = '''SELECT link FROM events limit 200;'''
     tmp = db.read_query(tmpQuery)
+    listOf200links = []
     for link in tmp:
-        tmp2 = str(link).strip("()',")
-        latest200links.append(tmp2)
-
-def checkIfExistsInDB():
-    global eventsToCommitNew, linkForUpdatedEvents, updatedEvents
-    eventsToCommitNew, linkForUpdatedEvents, updatedEvents = [], [], []
-
-    for entry in valuesOnly:
-        if entry[0] not in latest200links:
-            print("Found new event")    
-            eventsToCommitNew.append(entry)    
-
-    print("[+] Will commit new data for " + str(len(eventsToCommitNew)) + " events")
-    #print(eventsToCommitNew)
-    testtest = input("continue to add lat long for events? (y/n)? > ")
-    if testtest == "y":
-        pass
-
-def addUpdatedEventInfo():
-    testtest = input("Continue to update updated events? (y/n)? > ")
-    if testtest == "y":
-        pass
-
-    for entry in valuesOnly:
-        if entry[1][0] == "U":
-            #print("Found Updated event")
-            updatedEvents.append(entry)
-    print("[+] Will update data for " + str(len(updatedEvents)) + " events")
-
-    for entry in updatedEvents:
-        tmpResponse = entry[1]
-        linkPKforEntry = entry[0]
-        updateTmp = "".join(entry[1])
-        summaryTmp = "".join(entry[-8])
-        update_event = "UPDATE events SET updated = '" + updateTmp + "' WHERE link = '" + linkPKforEntry + "';"
-        db.update_query(update_event)
-        update_event = "UPDATE events SET summary = '" + summaryTmp + "' WHERE link = '" + linkPKforEntry + "';"
-        db.update_query(update_event)
-        #print("updated event")
-
-        # try:
-        #     if hasattr(tmpResponse, '__len__'):
-        #         if len(tmpResponse) < 7:
-        #             updateTmp = "".join(entry[1])
-        #             summaryTmp = "".join(entry[-8])
-        #             update_event = "UPDATE events SET updated = '" + updateTmp + "' WHERE link = '" + linkPKforEntry + "';"
-        #             db.update_query(update_event)
-        #             update_event = "UPDATE events SET summary = '" + summaryTmp + "' WHERE link = '" + linkPKforEntry + "';"
-        #             db.update_query(update_event)
-        # except Error as err:
-        #     print(f"Error: '{err}'")
+        listOf200links.append(str(link).strip("()',"))
+    # if lank in tmp:
+    #     return(True)
+    # return(False)
     
 def addLatLong():
-    global eventsToCommitNewWithLatLong, listOfLan, listOfLanSet
-    listOfLan, listOfLanSet = [], []
-    eventsToCommitNewWithLatLong = eventsToCommitNew
-        
-    for n, i in enumerate(eventsToCommitNewWithLatLong): #lista med title, link etc.
-        tmpEntryFive = i[5]      
-        if "län" in tmpEntryFive and tmpEntryFive != "Borlänge":
-            listOfLan.append(tmpEntryFive)
-            listOfLanSet = set(listOfLan)
-        
-        eventsToCommitNewWithLatLong[n].append((gp.geoparseLatitude(tmpEntryFive, False)))
-        eventsToCommitNewWithLatLong[n].append((gp.geoparseLongitude(tmpEntryFive, False)))
-        eventsToCommitNewWithLatLong[n].append((gp.geoparseLatitude(tmpEntryFive, True)))
-        eventsToCommitNewWithLatLong[n].append((gp.geoparseLongitude(tmpEntryFive, True))) 
-        print("Added lat long for: " + eventsToCommitNewWithLatLong[n][5] + " to list eventsToCommitNewWithLatLong")
-      
-def commitNewEventToDB():
-#add items do DB, update items where link is in linkupdatelist
-    for entry in eventsToCommitNewWithLatLong:
-    
-        tmp = str(entry).strip('[]')
-        tmp = re.sub('\'NULL\'', 'NULL', tmp)
-        pop_events = "INSERT INTO events VALUES (" + tmp + ");"
-        db.execute_query(pop_events)
+    global valuesWithLatLong, ListOfLan, ListOfLanSet
+    ListOfLan, ListOfLanSet = [], []
+    valuesWithLatLong = []
+#   valuesWithLatLong.append(values_only)
+#    print(valuesWithLatLong[0][0])
+    for entry in values_only:
+        if entry[0] not in listOf200links:
+            tmpEntryFive = entry[5]
+            if "län" in entry[5] and entry[5] != "Borlänge":
+                ListOfLan.append(entry[5])
+                ListOfLanSet = set(ListOfLan)
+            print(entry[5])   
+            #tmpEntryFive = gp.geoparseLatitude(tmpEntryFive, False)
+            valuesWithLatLong.append((gp.geoparseLatitude(tmpEntryFive, False)))
+            valuesWithLatLong.append((gp.geoparseLongitude(tmpEntryFive, False)))
+            valuesWithLatLong.append((gp.geoparseLatitude(tmpEntryFive, True)))
+            valuesWithLatLong.append((gp.geoparseLongitude(tmpEntryFive, True))) 
+    return(valuesWithLatLong)
+        #valuesWithLatLong.append(gp.geoparseLatitude(tmpEntryFive, False))
+        # entry.append(gp.geoparseLongitude(entry[5], False)
+        # entry.append(gp.geoparseLatitude(entry[5], True)
+        # entry.append(gp.geoparseLongitude(entry[5], True)
+
+
+def addToDB():
+    #loop through enties and turn them into strings, look for "uppdaterad" and then update table instead of insert, get lat long from geoparser and add random elements and add to DB
+    for entry in values_only:
+    #for entry in valuesWithLatLong
+        if entry[1][0] == "U":
+            #print("Found U")
+            linkPKforEntry = "".join(entry[0])
             
+            # if updated is populated, skip below
+            isUpdated = "SELECT updated FROM events WHERE link = '" + linkPKforEntry + "';"
+            tmpResponse = db.read_query(isUpdated)
+            
+            try:
+                tmpResponse[0][0]    
+            except IndexError:
+                pass
+            
+            try:
+                if hasattr(tmpResponse, '__len__'):
+                    if len(tmpResponse) < 7:
+                        updateTmp = "".join(entry[1])
+                        summaryTmp = "".join(entry[-4])
+                        update_event = "UPDATE events SET updated = '" + updateTmp + "' WHERE link = '" + linkPKforEntry + "';"
+                        db.update_query(update_event)
+                        update_event = "UPDATE events SET summary = '" + summaryTmp + "' WHERE link = '" + linkPKforEntry + "';"
+                        db.update_query(update_event)
+            except Error as err:
+                print(f"Error: '{err}'")
+        else:
+            #if checkIfLinkExists(entry[0]) == False:
+            if entry[0] not in listOf200links:    
+                tmp = str(entry).strip('[]')
+                tmp = re.sub('\'NULL\'', 'NULL', tmp)
+                pop_events = "INSERT INTO events VALUES (" + tmp + ");"
+                db.execute_query(pop_events)
+            else:
+                pass
+
 #initialize feedparser
 feedparser = feedparser.parse("https://polisen.se/aktuellt/rss/hela-landet/handelser-i-hela-landet/")
 
@@ -233,32 +217,22 @@ categorizeEntries()
 stripValues()
 addNull()
 addCityToList()
-addCategoryToList()
-latestLinks()
-checkIfExistsInDB()
-print("[+] calling latLong function")
-addLatLong()
-print("[+] commiting new data")
-commitNewEventToDB()
-print("[+] updating data for updated events")
-addUpdatedEventInfo()
-print("[+] closing DB connection")
-db.closeConnection()
+checkIfLinkExists()
+print(addLatLong())
+#print(valuesWithLatLong)
+#addToDB()
+
+
+
 
 # #intialize lists
 # events, entries = [], [] 
-# listOfLan = []
+# ListOfLan = []
 
 # print(gp.geoparseLatitude("Stockholm", False, False))
 # print(gp.geoparseLongitude("Stockholm", False, False))
 
-print('''
-################################
-'''
-)
-print("Commited " + str(db.commitedSum) + " events")
-print("Updated " + str(int(db.updatedSum / 2)) + " events")
-print('''
-################################
-'''
-)
+
+print(f"{len(values_only)} events processed")
+print("Commited " + str(db.commitedSum) + "events")
+print("Updated " + str(db.updatedSum) + "events")
