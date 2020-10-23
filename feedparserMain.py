@@ -161,14 +161,14 @@ def checkIfExistsInDB():
 
     print("[+] Will commit new data for " + str(len(eventsToCommitNew)) + " events")
     #print(eventsToCommitNew)
-    testtest = input("continue to add lat long for events? (y/n)? > ")
-    if testtest == "y":
-        pass
+    # testtest = input("continue to add lat long for events? (y/n)? > ")
+    # if testtest == "y":
+    #     pass
 
 def addUpdatedEventInfo():
-    testtest = input("Continue to update updated events? (y/n)? > ")
-    if testtest == "y":
-        pass
+    # testtest = input("Continue to update updated events? (y/n)? > ")
+    # if testtest == "y":
+    #     pass
 
     for entry in valuesOnly:
         if entry[1][0] == "U":
@@ -177,7 +177,6 @@ def addUpdatedEventInfo():
     print("[+] Will update data for " + str(len(updatedEvents)) + " events")
 
     for entry in updatedEvents:
-        tmpResponse = entry[1]
         linkPKforEntry = entry[0]
         updateTmp = "".join(entry[1])
         summaryTmp = "".join(entry[-8])
