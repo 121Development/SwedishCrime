@@ -7,7 +7,6 @@ from mysql.connector import Error
 # # YOUR DB INFO #
 # host = "35.228.29.131"
 # user = "sc"
-# password = "!!"
 # password = "!"
 # database = "swedishCrime"
 #YOUR DB INFO #
