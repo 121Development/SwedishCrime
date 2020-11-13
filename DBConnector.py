@@ -8,6 +8,7 @@ from mysql.connector import Error
 # host = "35.228.29.131"
 # user = "sc"
 # password = "!!"
+# password = "!"
 # database = "swedishCrime"
 #YOUR DB INFO #
 host = "localhost"
@@ -15,14 +16,37 @@ user = "root"
 password = ""
 database = "swedishCrime"
 
+def whichConnection(number):
+    global conn, cursor
+    if number == 1:
+        conn = mysql.connector.connect(user="sc", password="PoliceP4rser!", host="35.228.29.131", database="swedishCrime")
+        cursor = conn.cursor()
+        print(f"\nSuccessfully connected to Google DB {database}\n")
+    else:
+        conn = mysql.connector.connect(user="root", password="", host="localhost", database="swedishCrime")
+        cursor = conn.cursor()
+        print(f"\nSuccessfully connected to local DB {database}\n")
+
+
 
 #Establish the connection and set cursor
-try:
-    conn = mysql.connector.connect(user=user, password=password, host=host, database=database)
-    cursor = conn.cursor()
-    print(f"\nSuccessfully connected to database {database}\n")
-except Error as err:
-    print(f"Error: '{err}'")
+# try:
+#     conn = mysql.connector.connect(user=user, password=password, host=host, database=database)
+#     cursor = conn.cursor()
+#     print(f"\nSuccessfully connected to database {database}\n")
+# except Error as err:
+#     print(f"Error: '{err}'")
+# try:
+#     if fp.google == True:
+#         conn = mysql.connector.connect(user="sc", password="PoliceP4rser!", host="35.228.29.131", database="swedishCrime")
+#         print("database used Google Cloud")
+#     else:
+#         conn = mysql.connector.connect(user="root", password="", host="localhost", database="swedishCrime")
+#         print("databaseUsed Local SQL")
+#     cursor = conn.cursor()
+#     print(f"\nSuccessfully connected to database {database}\n")
+# except Error as err:
+#     print(f"Error: '{err}'")
 
 # Function to read passed query
 def read_query(query):
@@ -70,7 +94,7 @@ def delete_table_data(rounds):
     n = 0
     while n < rounds:
         for name in table_names:
-            delete_data(conn, f"DELETE FROM {name};")
+            delete_data(f"DELETE FROM {name};")
         n += 1
     print("Sucessfully deleted all table data\n")
 

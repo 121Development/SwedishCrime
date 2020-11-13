@@ -5,6 +5,8 @@ import re
 import DBConnector as db
 import geoparser as gp 
 
+
+
 #create new DB
 #Drop UQ keys
 #add categories to it
@@ -144,7 +146,8 @@ def addCategoryToList():
 def latestLinks():
     global latest200links
     latest200links = []
-    tmpQuery = '''SELECT link FROM events ORDER BY event_time DESC limit 200;'''
+    #tmpQuery = '''SELECT link FROM events ORDER BY event_time DESC limit 200;'''
+    tmpQuery = '''SELECT link FROM events;'''
     tmp = db.read_query(tmpQuery)
     for link in tmp:
         tmp2 = str(link).strip("()',")
@@ -186,18 +189,6 @@ def addUpdatedEventInfo():
         db.update_query(update_event)
         #print("updated event")
 
-        # try:
-        #     if hasattr(tmpResponse, '__len__'):
-        #         if len(tmpResponse) < 7:
-        #             updateTmp = "".join(entry[1])
-        #             summaryTmp = "".join(entry[-8])
-        #             update_event = "UPDATE events SET updated = '" + updateTmp + "' WHERE link = '" + linkPKforEntry + "';"
-        #             db.update_query(update_event)
-        #             update_event = "UPDATE events SET summary = '" + summaryTmp + "' WHERE link = '" + linkPKforEntry + "';"
-        #             db.update_query(update_event)
-        # except Error as err:
-        #     print(f"Error: '{err}'")
-    
 def addLatLong():
     global eventsToCommitNewWithLatLong, listOfLan, listOfLanSet
     listOfLan, listOfLanSet = [], []
@@ -228,6 +219,11 @@ def commitNewEventToDB():
 feedparser = feedparser.parse("https://polisen.se/aktuellt/rss/hela-landet/handelser-i-hela-landet/")
 
 
+
+
+#google = True
+db.whichConnection(0)
+print(db.conn)
 categorizeEntries()
 stripValues()
 addNull()
@@ -235,8 +231,20 @@ addCityToList()
 addCategoryToList()
 latestLinks()
 checkIfExistsInDB()
+#print(latest200links)
+testtest = input("continue?")
+if testtest == "y":
+    print("fortsätter")
+
 print("[+] calling latLong function")
 addLatLong()
+print("[+] commiting new data")
+commitNewEventToDB()
+print("[+] updating data for updated events")
+addUpdatedEventInfo()
+print("[+] Switching DB")
+db.whichConnection(1)
+checkIfExistsInDB()
 print("[+] commiting new data")
 commitNewEventToDB()
 print("[+] updating data for updated events")

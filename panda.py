@@ -1,6 +1,9 @@
 import pandas as pd
 import DBConnector as db
 
+
+db.whichConnection(0)
+
 def queryToDF():
     SQLQuery = pd.read_sql_query(
     '''select
